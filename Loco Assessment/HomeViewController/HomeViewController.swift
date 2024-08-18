@@ -22,6 +22,11 @@ class HomeViewController: UIViewController {
         setupBindings()
     }
     
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        searchBar.addShimmerToPlaceholder()
+    }
+    
     private func setupUI() {
         createSearchBar()
         createCollectionView()
@@ -47,6 +52,7 @@ class HomeViewController: UIViewController {
             textField.backgroundColor = UIColor(hexString: "#DECBA4")
             textField.textColor = .black
             textField.font = UIFont(name: "HelveticaNeue-Medium", size: 16)
+            textField.delegate = self
         }
     }
     
@@ -156,5 +162,15 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
         let detailVC = MovieDetailViewController()
         detailVC.movieID = selectedMovie?.imdbID
         self.navigationController?.pushViewController(detailVC, animated: true)
+    }
+}
+
+extension HomeViewController: UITextFieldDelegate {
+    func textFieldDidChangeSelection(_ textField: UITextField) {
+        if textField.text?.isEmpty ?? true {
+            searchBar.addShimmerToPlaceholder()
+        } else {
+            searchBar.removeShimmerFromPlaceholder()
+        }
     }
 }
