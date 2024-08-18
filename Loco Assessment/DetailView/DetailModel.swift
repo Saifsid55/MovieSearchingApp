@@ -7,8 +7,6 @@
 
 import Foundation
 
-import Foundation
-
 // MARK: - Detail
 struct Detail: Codable {
     let title, year, rated, released: String?
