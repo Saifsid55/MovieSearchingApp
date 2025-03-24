@@ -13,7 +13,7 @@ class HomeViewController: UIViewController {
     private var collectionView: UICollectionView!
     private var activityIndicator: UIActivityIndicatorView!
     private let viewModel = HomeViewModel()
-    
+    private var workItem: DispatchWorkItem?
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Movie Searching App"
@@ -59,7 +59,9 @@ class HomeViewController: UIViewController {
     private func createCollectionView() {
         
         let layout = UICollectionViewFlowLayout()
-        layout.itemSize = CGSize(width: view.frame.size.width, height: 130)
+        let totalSpacing: CGFloat = 10 * 3 // (2 * min interitem spacing) + left inset + right inset
+          let itemWidth = (view.frame.size.width - totalSpacing) / 2
+        layout.itemSize = CGSize(width: itemWidth, height: 130)
         layout.sectionInset = UIEdgeInsets(top: 12, left: 10, bottom: 10, right: 10)
         layout.minimumInteritemSpacing = 10
         layout.minimumLineSpacing = 10
@@ -122,6 +124,10 @@ extension HomeViewController {
             }
         }
     }
+    
+    func executeApi(query: String) {
+        viewModel.fetchMovies(for: query)
+    }
 }
 
 extension HomeViewController: UISearchBarDelegate {
@@ -131,8 +137,8 @@ extension HomeViewController: UISearchBarDelegate {
         guard let query = searchBar.text, !query.isEmpty else { return }
         viewModel.currentPage = 1
         viewModel.movies = []
-        self.collectionView.reloadData()
-        viewModel.fetchMovies(for: query)
+//        self.collectionView.reloadData()
+//        viewModel.fetchMovies(for: query)
     }
 }
 
@@ -170,7 +176,16 @@ extension HomeViewController: UITextFieldDelegate {
         if textField.text?.isEmpty ?? true {
             searchBar.addShimmerToPlaceholder()
         } else {
+            guard let query = searchBar.text, !query.isEmpty else { return }
             searchBar.removeShimmerFromPlaceholder()
+//            self.collectionView.reloadData()
+            workItem?.cancel()
+            workItem = DispatchWorkItem {
+                self.executeApi(query: query)
+                print("Workitem executed")
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now()+2, execute: workItem!)
+            
         }
     }
 }

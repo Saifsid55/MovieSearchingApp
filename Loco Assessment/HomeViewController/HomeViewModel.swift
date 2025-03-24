@@ -13,10 +13,11 @@ class HomeViewModel {
     var currentPage = 1
     private var isFetching = false
     private let networkManager = NetworkManager()
-    
+
     var didUpdateMovies: (() -> Void)?
     var didFailWithError: ((Error) -> Void)?
     var isLoading: ((Bool) -> Void)?
+    
     
     var numberOfMovies: Int {
         guard let movies = movies else {return 0}
@@ -45,3 +46,4 @@ class HomeViewModel {
         }
     }
 }
+
