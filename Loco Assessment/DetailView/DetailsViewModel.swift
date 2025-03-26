@@ -10,26 +10,27 @@ import Foundation
 final class DetailsViewModel {
     
     private let networkManager = NetworkManager()
-        private(set) var movie: Detail?
+    private(set) var movie: Detail?
+    
+    var didUpdateMovieDetails: (() -> Void)?
+    var didFailWithError: ((Error) -> Void)?
+    var isLoading: ((Bool) -> Void)?
+    
+    func fetchMovieDetails(by id: String) {
+        isLoading?(true)
+        let urlString = "https://www.omdbapi.com/?apikey=\(ApiHelper.shared.apikey)&i=\(id)"
         
-        var didUpdateMovieDetails: (() -> Void)?
-        var didFailWithError: ((Error) -> Void)?
-        var isLoading: ((Bool) -> Void)?
-        
-        func fetchMovieDetails(by id: String) {
-            isLoading?(true)
+        networkManager.fetchData(urlStr: urlString) { [weak self] (result: Result<Detail, Error>) in
+            guard let self = self else { return }
+            self.isLoading?(false)
             
-            networkManager.fetchMovieDetails(movieID: id) { [weak self] result in
-                guard let self = self else { return }
-                self.isLoading?(false)
-                
-                switch result {
-                case .success(let movieDetails):
-                    self.movie = movieDetails
-                    self.didUpdateMovieDetails?()
-                case .failure(let error):
-                    self.didFailWithError?(error)
-                }
+            switch result {
+            case .success(let movieDetails):
+                self.movie = movieDetails
+                self.didUpdateMovieDetails?()
+            case .failure(let error):
+                self.didFailWithError?(error)
             }
         }
+    }
 }

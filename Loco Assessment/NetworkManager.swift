@@ -14,49 +14,31 @@ import Foundation
 //  "https://www.jsonkeeper.com/b/9LXA"
 
 class NetworkManager {
-    private let apiKey = "5932c39c"
-    func fetchMovies(searchQuery: String, page: Int, completion: @escaping (Result<Movies, Error>) -> Void) {
-        let urlString = "https://www.omdbapi.com/?apikey=\(apiKey)&s=\(searchQuery)&page=\(page)"
-        guard let url = URL(string: urlString) else { return }
-        print("URL->",url)
+    
+    func fetchData<T: Codable>(urlStr: String, completion: @escaping (Result<T,Error>) -> Void) {
+        guard let url = URL(string: urlStr) else {return}
+        
         let task = URLSession.shared.dataTask(with: url) { data, response, error in
             if let error = error {
                 completion(.failure(error))
                 return
             }
             
-            guard let data = data else { return }
-            
-            do {
-                let moviesResponse = try JSONDecoder().decode(Movies.self, from: data)
-                completion(.success(moviesResponse))
-            } catch {
-                completion(.failure(error))
-            }
-        }
-        
-        task.resume()
-    }
-    
-    func fetchMovieDetails(movieID: String, completion: @escaping (Result<Detail, Error>) -> Void) {
-        let urlString = "https://www.omdbapi.com/?apikey=\(apiKey)&i=\(movieID)"
-        guard let url = URL(string: urlString) else { return }
-        
-        let task = URLSession.shared.dataTask(with: url) { data, _, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-            
-            guard let data = data else { return }
-            
-            do {
-                let movieDetails = try JSONDecoder().decode(Detail.self, from: data)
-                completion(.success(movieDetails))
-            } catch {
-                completion(.failure(error))
+            if let data = data {
+                do {
+                    let result = try JSONDecoder().decode(T.self, from: data)
+                    completion(.success(result))
+                }
+                catch {
+                    completion(.failure(error))
+                }
             }
         }
         task.resume()
     }
+}
+
+class ApiHelper {
+    static let shared = ApiHelper()
+    let apikey = "5932c39c"
 }

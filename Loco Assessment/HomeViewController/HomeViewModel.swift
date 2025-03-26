@@ -13,11 +13,10 @@ class HomeViewModel {
     var currentPage = 1
     private var isFetching = false
     private let networkManager = NetworkManager()
-
+    
     var didUpdateMovies: (() -> Void)?
     var didFailWithError: ((Error) -> Void)?
     var isLoading: ((Bool) -> Void)?
-    
     
     var numberOfMovies: Int {
         guard let movies = movies else {return 0}
@@ -28,14 +27,14 @@ class HomeViewModel {
         guard !isFetching else { return }
         isFetching = true
         isLoading?(true)
+        let urlString = "https://www.omdbapi.com/?apikey=\(ApiHelper.shared.apikey)&s=\(query)&page=\(currentPage)"
         
-        networkManager.fetchMovies(searchQuery: query, page: currentPage) { [weak self] result in
-            guard let self = self else { return }
+        networkManager.fetchData(urlStr: urlString) { [weak self] (result: Result<Movies, Error>) in
+            guard let self = self else {return}
             self.isFetching = false
-            
             switch result {
-            case .success(let moviesResponse):
-                self.movies?.append(contentsOf: moviesResponse.search)
+            case .success(let movieData):
+                self.movies?.append(contentsOf: movieData.search)
                 self.didUpdateMovies?()
             case .failure(let error):
                 if !(currentPage>1){
