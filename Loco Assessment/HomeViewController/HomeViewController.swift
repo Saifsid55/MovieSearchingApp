@@ -12,8 +12,20 @@ class HomeViewController: UIViewController {
     private var searchBar: UISearchBar!
     private var collectionView: UICollectionView!
     private var activityIndicator: UIActivityIndicatorView!
-    private let viewModel = HomeViewModel()
+    private var viewModel: HomeViewProtocol
     private var workItem: DispatchWorkItem?
+    
+    
+    init(viewModel: HomeViewProtocol) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Movie Searching App"
@@ -150,9 +162,8 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "MovieCVC", for: indexPath) as! MovieCVC
-        if let movies = viewModel.movies {
-            cell.configure(with: movies[indexPath.item])
-        }
+       
+        cell.configure(with: viewModel.movies[indexPath.item])
         return cell
     }
     
@@ -164,9 +175,9 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let selectedMovie = viewModel.movies?[indexPath.item]
+        let selectedMovie = viewModel.movies[indexPath.item]
         let detailVC = MovieDetailViewController()
-        detailVC.movieID = selectedMovie?.imdbID
+        detailVC.movieID = selectedMovie.imdbID
         self.navigationController?.pushViewController(detailVC, animated: true)
     }
 }

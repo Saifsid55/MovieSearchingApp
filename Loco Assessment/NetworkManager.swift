@@ -13,7 +13,15 @@ import Foundation
 
 //  "https://www.jsonkeeper.com/b/9LXA"
 
-class NetworkManager {
+protocol NetworkService {
+    func fetchData<T: Codable>(urlStr: String, completion: @escaping (Result<T, Error>)-> Void)
+}
+
+
+class NetworkManager: NetworkService {
+    
+    static let shared = NetworkManager()
+    private init() {}
     
     func fetchData<T: Codable>(urlStr: String, completion: @escaping (Result<T,Error>) -> Void) {
         guard let url = URL(string: urlStr) else {return}

@@ -7,20 +7,40 @@
 
 import Foundation
 
-class HomeViewModel {
+protocol HomeViewProtocol {
+    var movies: [Search] {get set}
+    var currentPage: Int {get set}
     
-    var movies: [Search]? = []
+    var numberOfMovies: Int { get }
+    
+    var didUpdateMovies: (() -> Void)? { get set }
+    var didFailWithError: ((Error) -> Void)? { get set }
+    var isLoading: ((Bool) -> Void)? { get set }
+    
+    func fetchMovies(for query: String)
+}
+
+class HomeViewModel: HomeViewProtocol {
+    
+    var movies: [Search] = []
     var currentPage = 1
     private var isFetching = false
-    private let networkManager = NetworkManager()
+    private let networkManager: NetworkService
     
     var didUpdateMovies: (() -> Void)?
     var didFailWithError: ((Error) -> Void)?
     var isLoading: ((Bool) -> Void)?
     
+    
+    
     var numberOfMovies: Int {
-        guard let movies = movies else {return 0}
+        guard movies.count > 0 else {return 0}
         return movies.count
+    }
+    
+    
+    init(networkService: NetworkService = NetworkManager.shared) {
+        self.networkManager = networkService
     }
     
     func fetchMovies(for query: String) {
@@ -34,7 +54,7 @@ class HomeViewModel {
             self.isFetching = false
             switch result {
             case .success(let movieData):
-                self.movies?.append(contentsOf: movieData.search)
+                self.movies.append(contentsOf: movieData.search)
                 self.didUpdateMovies?()
             case .failure(let error):
                 if !(currentPage>1){

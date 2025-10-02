@@ -9,12 +9,16 @@ import Foundation
 
 final class DetailsViewModel {
     
-    private let networkManager = NetworkManager()
+    private let networkManager: NetworkService
     private(set) var movie: Detail?
     
     var didUpdateMovieDetails: (() -> Void)?
     var didFailWithError: ((Error) -> Void)?
     var isLoading: ((Bool) -> Void)?
+    
+    init(networkManager: NetworkService = NetworkManager.shared) {
+        self.networkManager = networkManager
+    }
     
     func fetchMovieDetails(by id: String) {
         isLoading?(true)
