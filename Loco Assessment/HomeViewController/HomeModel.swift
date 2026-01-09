@@ -20,7 +20,7 @@ struct Movies: Codable {
 }
 
 // MARK: - Search
-struct Search: Codable {
+struct Search: Codable, Hashable {
     let title, year, imdbID: String?
     let type: TypeEnum?
     let poster: String?

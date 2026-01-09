@@ -15,7 +15,9 @@ class HomeViewController: UIViewController {
     private var viewModel: HomeViewProtocol
     private var workItem: DispatchWorkItem?
     
-    
+    // MARK: - Diffiable Datasource
+    private var dataSource: UICollectionViewDiffableDataSource<Section, Search>!
+
     init(viewModel: HomeViewProtocol) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
@@ -43,6 +45,7 @@ class HomeViewController: UIViewController {
         createSearchBar()
         createCollectionView()
         createActivityIndicator()
+        configureDataSource()
     }
     
     private func createSearchBar() {
@@ -81,7 +84,7 @@ class HomeViewController: UIViewController {
         
         collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: layout)
         collectionView.delegate = self
-        collectionView.dataSource = self
+//        collectionView.dataSource = self
         collectionView.register(MovieCVC.self, forCellWithReuseIdentifier: "MovieCVC")
         collectionView.alwaysBounceHorizontal = false
         collectionView.alwaysBounceVertical = true
@@ -105,6 +108,30 @@ class HomeViewController: UIViewController {
         activityIndicator.hidesWhenStopped = true
         view.addSubview(activityIndicator)
     }
+    
+    // MARK: - For Diffiable Datasource
+    private func configureDataSource() {
+        dataSource = UICollectionViewDiffableDataSource<Section, Search>(
+            collectionView: collectionView
+        ) { collectionView, indexPath, movie in
+            
+            let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: "MovieCVC",
+                for: indexPath
+            ) as! MovieCVC
+            
+            cell.configure(with: movie)
+            return cell
+        }
+    }
+
+    private func applySnapshot(animatingDifferences: Bool = true) {
+        var snapshot = NSDiffableDataSourceSnapshot<Section, Search>()
+        snapshot.appendSections([.main])
+        snapshot.appendItems(viewModel.movies)
+        dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
+    }
+
 }
 
 extension HomeViewController {
@@ -114,7 +141,9 @@ extension HomeViewController {
         viewModel.didUpdateMovies = { [weak self] in
             guard let self = self else {return}
             DispatchQueue.main.async {
-                self.collectionView.reloadData()
+//                self.collectionView.reloadData()
+                // MARK: - Apply snapshot
+                self.applySnapshot()
             }
         }
         
@@ -149,13 +178,15 @@ extension HomeViewController: UISearchBarDelegate {
         guard let query = searchBar.text, !query.isEmpty else { return }
         viewModel.currentPage = 1
         viewModel.movies = []
+        applySnapshot(animatingDifferences: false)
 //        self.collectionView.reloadData()
 //        viewModel.fetchMovies(for: query)
     }
 }
 
-extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelegate {
-    
+extension HomeViewController: UICollectionViewDelegate {
+   
+    /*
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         viewModel.numberOfMovies
     }
@@ -166,6 +197,7 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
         cell.configure(with: viewModel.movies[indexPath.item])
         return cell
     }
+    */
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         if indexPath.row == viewModel.numberOfMovies - 1 {
@@ -198,5 +230,11 @@ extension HomeViewController: UITextFieldDelegate {
             DispatchQueue.main.asyncAfter(deadline: .now()+2, execute: workItem!)
             
         }
+    }
+}
+
+private extension HomeViewController {
+    enum Section {
+        case main
     }
 }
